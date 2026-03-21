@@ -1,0 +1,15 @@
+locals {
+    name_conv_vpc = "${var.project}-vpc-${var.region_acronym}-"
+    name_conv_rt = "${var.project}-rt-${var.region_acronym}-"
+    name_conv_rt_igw = "${var.project}-rt-${var.region_acronym}-${var.vpc_name}-igw-edge"
+    name_conv_snet = "${var.project}-sn-${var.region_acronym}-"
+    name_conv_dhcp_ops = "${var.project}-dhc-ops-${var.region_acronym}-${var.vpc_name}"
+    name_conv_fl = "${var.project}-fl-${var.region_acronym}${var.vpc_name}"
+    name_conv_fl_role = "${var.project}-rl-fl-${var.region_acronym}${var.vpc_name}"
+    name_conv_igw = "${var.project}-igw-${var.region_acronym}-${var.vpc_name}"
+    name_conv_eip = "${var.project}-eip-${var.region_acronym}"
+    name_conv_natgw = "${var.project}-natgw-${var.region_acronym}"
+    name_conv_waf = "${var.project}-waf-${var.region_acronym}"
+    name_conv_vgw = "${var.project}-vgw-${var.region_acronym}"
+    name_conv_cgw = "${var.project}-cgw-${var.region_acronym}"
+}
