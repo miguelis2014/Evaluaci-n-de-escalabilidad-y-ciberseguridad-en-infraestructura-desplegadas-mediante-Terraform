@@ -48,6 +48,12 @@ variable "alb_ingress_cidrs" {
   default     = ["0.0.0.0/0"]
 }
 
+# variable "acm_certificate_arn" {
+#   type        = string
+#   description = "ARN del certificado ACM para el listener HTTPS del ALB"
+#   default     = null
+# }
+
 # App / ASG
 variable "ami_id" { 
     description = "AMI para las instancias" 

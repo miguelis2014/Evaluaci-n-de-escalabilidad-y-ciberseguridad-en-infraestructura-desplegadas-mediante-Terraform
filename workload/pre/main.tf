@@ -58,17 +58,18 @@ module "alb" {
   vpc_id               = module.vpc.vpc_id
   subnets              = module.vpc.public_subnet_ids
   create_security_group = true
+  enable_deletion_protection = false
   security_group_ingress_rules = {
     http = {
       from_port = 80
       to_port   = 80
       cidr_ipv4 = "0.0.0.0/0"
     }
-    https = {
-      from_port = 443
-      to_port   = 443
-      cidr_ipv4 = "0.0.0.0/0"
-    }
+    # https = {
+    #   from_port = 443
+    #   to_port   = 443
+    #   cidr_ipv4 = "0.0.0.0/0"
+    # }
   }
 
   target_groups = {
@@ -90,17 +91,21 @@ module "alb" {
     http = {
       port     = 80
       protocol = "HTTP"
-      redirect = {
-        status_code = "HTTP_301"
-        port        = "443"
-        protocol    = "HTTPS"
-      }
+      forward  = { target_group_key = "app" }
+      redirect = null
+      # redirect = {
+      #   status_code = "HTTP_301"
+      #   port        = "443"
+      #   protocol    = "HTTPS"
+      # }
     }
-    https = {
-      port           = 443
-      protocol       = "HTTPS"
-      forward        = { target_group_key = "app" }
-    }
+    # https = {
+    #   port           = 443
+    #   protocol       = "HTTPS"
+    #   ssl_policy      = "ELBSecurityPolicy-TLS13-1-3-2021-06"
+    #   certificate_arn = var.acm_certificate_arn
+    #   forward        = { target_group_key = "app" }
+    # }
   }
 
 }
