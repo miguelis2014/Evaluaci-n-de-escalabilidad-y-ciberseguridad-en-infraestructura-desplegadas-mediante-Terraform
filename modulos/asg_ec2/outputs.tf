@@ -8,7 +8,12 @@ output "asg_name" {
   description = "Nombre del Auto Scaling Group"
 }
 
-output "launch_template_id" {
-  value       = aws_launch_template.lt.id
-  description = "ID del Launch Template"
+# output "launch_template_id" {
+#   value       = aws_launch_template.lt.id
+#   description = "ID del Launch Template"
+# }
+
+output "launch_configuration_name" {
+  value       = aws_launch_configuration.lc.name
+  description = "Nombre de la Launch Configuration"
 }

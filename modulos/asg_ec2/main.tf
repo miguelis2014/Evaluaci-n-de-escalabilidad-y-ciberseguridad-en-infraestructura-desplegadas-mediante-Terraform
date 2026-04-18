@@ -8,11 +8,11 @@ locals {
 # SG de la app: SOLO recibe del SG del ALB
 resource "aws_security_group" "app" {
   name        = "${var.name}-app-sg"
-  description = "Permite tráfico desde el ALB hacia la app"
+  description = "Permite trafico desde el ALB hacia la app"
   vpc_id      = var.vpc_id
 
   ingress {
-    description     = "ALB -> app"
+    description     = "ALB_app_ingress"
     from_port       = var.app_port
     to_port         = var.app_port
     protocol        = "tcp"
@@ -30,53 +30,74 @@ resource "aws_security_group" "app" {
   tags = local.tags
 }
 
-resource "aws_launch_template" "lt" {
-  name_prefix   = "${var.name}-lt-"
-  image_id      = var.ami_id
-  instance_type = var.instance_type
-  key_name      = var.key_name
+# resource "aws_launch_template" "lt" {
+#   name_prefix   = "${var.name}-lt-"
+#   image_id      = var.ami_id
+#   instance_type = var.instance_type
+#   key_name      = var.key_name
 
-  # Seguridad y red
-  network_interfaces {
-    security_groups             = [aws_security_group.app.id]
-    associate_public_ip_address = false
-  }
+#   # Seguridad y red
+#   network_interfaces {
+#     security_groups             = [aws_security_group.app.id]
+#     associate_public_ip_address = false
+#   }
 
-  # Requiere IMDSv2
-  metadata_options {
-    http_endpoint = "enabled"
-    http_tokens = "required"
-    http_put_response_hop_limit = 1
-  }
+#   # Requiere IMDSv2
+#   metadata_options {
+#     http_endpoint = "enabled"
+#     http_tokens = "required"
+#     http_put_response_hop_limit = 1
+#   }
 
-  # Métricas a 1-min (si enabled)
-  monitoring {
-    enabled = var.enable_detailed_monitoring
-  }
+#   # Métricas a 1-min (si enabled)
+#   monitoring {
+#     enabled = var.enable_detailed_monitoring
+#   }
 
-  dynamic "iam_instance_profile" {
-    for_each = var.iam_instance_profile_arn != null ? [1] : []
-    content {
-      arn = var.iam_instance_profile_arn
-    }
-  }
+#   dynamic "iam_instance_profile" {
+#     for_each = var.iam_instance_profile_arn != null ? [1] : []
+#     content {
+#       arn = var.iam_instance_profile_arn
+#     }
+#   }
 
-  user_data = var.userdata == "" ? null : base64encode(var.userdata)
+#   user_data = var.userdata == "" ? null : base64encode(var.userdata)
 
-  tag_specifications {
-    resource_type = "instance"
-    tags          = merge(local.tags, { Name = "${var.name}-app" })
-  }
+#   tag_specifications {
+#     resource_type = "instance"
+#     tags          = merge(local.tags, { Name = "${var.name}-app" })
+#   }
 
-  tag_specifications {
-    resource_type = "volume"
-    tags          = local.tags
-  }
+#   tag_specifications {
+#     resource_type = "volume"
+#     tags          = local.tags
+#   }
+
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+# }
+
+
+resource "aws_launch_configuration" "lc" {
+  name_prefix          = "${var.name}-lc-"
+  image_id             = var.ami_id
+  instance_type        = var.instance_type
+  key_name             = var.key_name
+
+  security_groups      = [aws_security_group.app.id]
+  iam_instance_profile = var.iam_instance_profile_arn
+
+  enable_monitoring    = var.enable_detailed_monitoring
+
+  # user_data en texto plano (no base64)
+  user_data = var.userdata == "" ? null : var.userdata
 
   lifecycle {
     create_before_destroy = true
   }
 }
+
 
 resource "aws_autoscaling_group" "asg" {
   name                      = "${var.name}-asg"
@@ -89,10 +110,12 @@ resource "aws_autoscaling_group" "asg" {
   health_check_grace_period = var.health_check_grace_period
   default_instance_warmup   = var.default_instance_warmup
 
-  launch_template {
-    id      = aws_launch_template.lt.id
-    version = "$Latest"
-  }
+  launch_configuration = aws_launch_configuration.lc.name
+
+  # launch_template {
+  #   id      = aws_launch_template.lt.id
+  #   version = "$Latest"
+  # }
 
   # Propaga tags a instancias
   tag {

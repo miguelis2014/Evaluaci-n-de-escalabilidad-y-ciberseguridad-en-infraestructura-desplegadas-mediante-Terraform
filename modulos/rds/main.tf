@@ -10,11 +10,11 @@ locals {
 # SG de la base de datos: SOLO permite tráfico desde el SG de la app
 resource "aws_security_group" "rds" {
   name        = "${var.name}-rds-sg"
-  description = "Permite acceso a RDS únicamente desde la app"
+  description = "Permite acceso a RDS unicamente desde la app"
   vpc_id      = var.vpc_id
 
   ingress {
-    description     = "App -> RDS"
+    description     = "App to RDS"
     from_port       = local.db_port
     to_port         = local.db_port
     protocol        = "tcp"
